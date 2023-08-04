@@ -1,6 +1,7 @@
 package main
 
 import (
+	"amitshekar-clean-arch/api/route"
 	"amitshekar-clean-arch/bootstrap"
 	"log"
 
@@ -19,7 +20,8 @@ func main() {
 	db := app.MySql
 
 	server = gin.Default()
-	basePath := server.Group("/v1")
+
+	route.Setup(env, db, server)
 
 	log.Fatal(server.Run(env.ServerAddress))
 }

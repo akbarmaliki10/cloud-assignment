@@ -2,23 +2,21 @@ package route
 
 import (
 	"amitshekar-clean-arch/bootstrap"
-	"time"
 
 	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/mongo"
+	"gorm.io/gorm"
 )
 
-func Setup(env *bootstrap.Env, timeout time.Duration, db mongo.Database, gin *gin.Engine) {
-	publicRouter := gin.Group("")
+func Setup(env *bootstrap.Env, db *gorm.DB, gin *gin.Engine) {
+	publicRouter := gin.Group("/v1/todo")
 	// All Public APIs
-	NewSignupRouter(env, timeout, db, publicRouter)
-	NewLoginRouter(env, timeout, db, publicRouter)
-	NewRefreshTokenRouter(env, timeout, db, publicRouter)
+	NewTodoRouter(env, db, publicRouter)
 
-	protectedRouter := gin.Group("")
+	// protectedRouter := gin.Group("/v1")
+
 	// Middleware to verify AccessToken
-	protectedRouter.Use(middleware.JwtAuthMiddleware(env.AccessTokenSecret))
+	// protectedRouter.Use(middleware.JwtAuthMiddleware(env.AccessTokenSecret))
+
 	// All Private APIs
-	NewProfileRouter(env, timeout, db, protectedRouter)
-	NewTaskRouter(env, timeout, db, protectedRouter)
+	// NewProfileRouter(env, timeout, db, protectedRouter)
 }

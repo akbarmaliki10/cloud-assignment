@@ -1,6 +1,7 @@
 package bootstrap
 
 import (
+	"amitshekar-clean-arch/domain"
 	"fmt"
 
 	"gorm.io/driver/mysql"
@@ -15,15 +16,15 @@ func NewMySqlDatabase(env *Env) *gorm.DB {
 	dbPass := env.DBPass
 	dbName := env.DBName
 
-	connectionString := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", dbUser, dbPass, dbHost, dbPort, dbName)
+	connectionString := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", dbUser, dbPass, dbHost, dbPort, dbName)
 
 	dbConn, err := gorm.Open(mysql.Open(connectionString), &gorm.Config{})
 	if err != nil {
 		panic(err)
 	}
 
-	// // Migrate the schema
-	// dbConn.AutoMigrate(&domain.Todo{})
+	// Migrate the schema
+	dbConn.AutoMigrate(&domain.Todo{})
 
 	return dbConn
 }
