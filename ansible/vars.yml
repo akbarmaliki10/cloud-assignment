@@ -1,0 +1,5 @@
+root_password: root
+admin_user: admin
+admin_password: admin
+db_name: product
+password_validation_policy: 1

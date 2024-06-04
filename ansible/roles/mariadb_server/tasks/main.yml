@@ -1,0 +1,116 @@
+- name: Install Python MySQL library
+  tags: python, mysql, mariadb
+  package:
+    name: "{{item}}"
+    state: present
+    update_cache: yes
+  loop:
+    - mariadb-server
+    - mariadb-client
+    - python3-mysqldb
+    - libmariadb-dev
+  become: yes
+- name: Start MariaDB service and enabled
+  tags: service, db, mariadb
+  service:
+    name: mariadb
+    state: started
+    enabled: yes
+- name: Set root user password
+  mysql_user:
+    name: root
+    password: "{{root_password}}"
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+    host: localhost
+    login_user: root
+    login_password: ''
+    state: present
+- name: Create admin user with remote access
+  mysql_user:
+    name: "{{admin_user}}"
+    password: "{{admin_password}}"
+    priv: '*.*:ALL'
+    host: '%'
+    append_privs: yes
+    login_user: root
+    login_password: "{{root_password}}"
+    state: present
+- name: creating database 
+  mysql_db:
+    name: "{{db_name}}"
+    state: present
+    login_user: root
+    login_password: "{{root_password}}"
+- name: Enable remote login to MariaDB
+  lineinfile:
+    path: /etc/mysql/mariadb.conf.d/50-server.cnf
+    regex: '^bind-address\s*=\s*127.0.0.1'
+    line: 'bind-address = 0.0.0.0'
+    backup: yes
+  notify:
+    - Restart mariadb
+- name: Remove anonymous users
+  mysql_user:
+    name: ''
+    host_all: yes
+    state: absent
+    login_user: root
+    login_password: "{{root_password}}"
+
+- name: Disallow root login remotely
+  mysql_user:
+    name: root
+    host: '%'
+    state: absent
+    login_user: root
+    login_password: "{{root_password}}"
+
+- name: Remove test database
+  mysql_db:
+    name: test
+    state: absent
+    login_user: root
+    login_password: "{{root_password}}"
+
+- name: Reload privilege tables
+  mysql_query:
+    query: "FLUSH PRIVILEGES;"
+    login_user: root
+    login_password: "{{root_password}}"
+
+# - name: Removes anonymous user account for localhost
+#   community.mysql.mysql_user:
+#     name: ''
+#     host: localhost
+#     state: absent
+#     login_unix_socket: /run/mysqld/mysqld.sock
+# - name: Removes all anonymous user accounts
+#   community.mysql.mysql_user:
+#     name: ''
+#     host_all: true
+#     state: absent
+#     login_unix_socket: /run/mysqld/mysqld.sock
+# - name: Create database user with name 'bob' and password '12345' with all database privileges
+#   community.mysql.mysql_user:
+#     name: bob
+#     password: 12345
+#     priv: '*.*:ALL'
+#     state: present
+# - name: Create database
+#   tags: db, mariadb
+#   community.mysql.mysql_db:
+#     name: "test"
+#     state: present
+#     login_user: root 
+#     login_password: "{{ mariadb_root_password }}"
+# - name: add sample data to database  
+#   copy: 
+#     src: dump.sql 
+#     dest: /tmp/dump.sql  
+# - name: insert sample data into database  
+#   community.mysql.mysql_user: 
+#     name: testdb 
+#     state: import 
+#     target: /tmp/dump.sql 
+#     login_user: root 
+#     login_password: "{{ mariadb_root_password }}"

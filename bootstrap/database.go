@@ -17,14 +17,14 @@ func NewMySqlDatabase(env *Env) *gorm.DB {
 	dbName := env.DBName
 
 	connectionString := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", dbUser, dbPass, dbHost, dbPort, dbName)
-
+	fmt.Println(connectionString)
 	dbConn, err := gorm.Open(mysql.Open(connectionString), &gorm.Config{})
 	if err != nil {
 		panic(err)
 	}
 
 	// Migrate the schema
-	dbConn.AutoMigrate(&domain.Todo{})
+	dbConn.AutoMigrate(&domain.Product{})
 
 	return dbConn
 }
