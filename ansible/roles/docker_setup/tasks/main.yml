@@ -1,0 +1,54 @@
+- name: Ensure Python3 is installed
+  apt:
+    name: python3
+    state: present
+    update_cache: yes
+
+- name: Ensure pip for Python3 is installed
+  apt:
+    name: python3-pip
+    state: present
+    update_cache: yes
+
+- name: Install Docker SDK for Python
+  pip:
+    name: docker
+    executable: pip3
+
+- name: Ensure Docker is installed
+  apt:
+    name: docker.io
+    state: present
+    update_cache: yes
+
+- name: Ensure Docker service is started
+  service:
+    name: docker
+    state: started
+    enabled: yes
+
+- name: Build an image and push it to a private repo
+  community.docker.docker_image:
+    build:
+      path: ../
+    name: akbarmaliki1/cloud-assignment
+    tag: v1
+    push: true
+    source: build
+
+- name: Pull an image
+  community.docker.docker_image:
+    name: akbarmaliki1/cloud-assignment:v1
+    source: pull
+    # Select platform for pulling. If not specified, will pull whatever docker prefers.
+    pull:
+      platform: amd64
+
+- name: Run Docker container
+  docker_container:
+    name: cloud-assignment
+    image: akbarmaliki1/cloud-assignment:v1
+    state: started
+    restart_policy: always
+    ports:
+      - "8080:8080"
